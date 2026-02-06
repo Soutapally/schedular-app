@@ -6,11 +6,13 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { PatientsModule } from './patients/patients.module';
 import { DoctorsModule } from './doctors/doctors.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env',
     }),
 
     TypeOrmModule.forRoot({
@@ -28,6 +30,7 @@ import { DoctorsModule } from './doctors/doctors.module';
     UsersModule,
     PatientsModule,
     DoctorsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
