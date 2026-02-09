@@ -1,7 +1,6 @@
 //GoogleStrategy handles Google OAuth authentication.
 //It extracts user identity from Google and passes it to AuthService
-
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-google-oauth20';
 import { Request } from 'express';
@@ -18,7 +17,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
-  async validate(req: Request, accessToken: string, refreshToken: string, profile: any) {
+  async validate(
+    req: Request,
+    accessToken: string,
+    refreshToken: string,
+    profile: any,
+  ) {
     const role = req.path.includes('patient') ? 'PATIENT' : 'DOCTOR';
 
     return {
