@@ -1,5 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import { Doctor } from '../doctors/doctor.entity';
+import { Specialization } from '../specializations/specialization.entity';
 
 @Entity('doctor_profiles')
 export class DoctorProfile {
@@ -19,8 +28,14 @@ export class DoctorProfile {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   fee: number;
 
-  @Column()
-  specialization: string;
+  // ✅ WEEK-1 SPECIALIZATION SUPPORT
+  @ManyToMany(() => Specialization)
+  @JoinTable({
+    name: 'doctor_profile_specializations',
+    joinColumn: { name: 'profile_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'specialization_id', referencedColumnName: 'id' },
+  })
+  specializations: Specialization[];
 
   @Column({ default: false })
   isVerified: boolean;

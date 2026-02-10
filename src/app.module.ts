@@ -8,6 +8,9 @@ import { PatientsModule } from './patients/patients.module';
 import { DoctorsModule } from './doctors/doctors.module';
 import { AuthModule } from './auth/auth.module';
 import { DoctorProfilesModule } from './doctor-profiles/doctor-profiles.module';
+import { VerificationModule } from './verification/verification.module';
+import { AvailabilityModule } from './availability/availability.module';
+import { SpecializationsModule } from './specializations/specializations.module';
 
 @Module({
   imports: [
@@ -34,6 +37,9 @@ import { DoctorProfilesModule } from './doctor-profiles/doctor-profiles.module';
     AuthModule,
     DoctorsModule,
     DoctorProfilesModule,
+    VerificationModule,
+  AvailabilityModule,
+  SpecializationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
