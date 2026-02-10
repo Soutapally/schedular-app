@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+
 import { UsersModule } from './users/users.module';
 import { PatientsModule } from './patients/patients.module';
 import { DoctorsModule } from './doctors/doctors.module';
@@ -28,9 +27,9 @@ import { SpecializationsModule } from './specializations/specializations.module'
       database: process.env.DB_NAME,
       autoLoadEntities: true,
       synchronize: true,
-      logging: true // dev only
+      logging: true,
     }),
-    
+
     UsersModule,
     PatientsModule,
     DoctorsModule,
@@ -41,7 +40,5 @@ import { SpecializationsModule } from './specializations/specializations.module'
   AvailabilityModule,
   SpecializationsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

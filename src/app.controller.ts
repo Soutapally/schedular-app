@@ -1,12 +1,15 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 
-@Controller()
+@Controller('hello')
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
+  getHello(): any {
+    throw new Error('Method not implemented.');
+  }
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  hello() {
+    return {
+      message: 'Hello from NestJS API ',
+    };
   }
 }
