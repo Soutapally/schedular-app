@@ -1,3 +1,6 @@
+//Handles business logic to create availability slots and retrieve a doctor’s availability
+//  from the database.
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';

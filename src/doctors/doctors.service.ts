@@ -16,11 +16,12 @@ export class DoctorsService {
 
   // ✅ Used by DoctorProfilesService
   async findByUserId(userId: number): Promise<Doctor | null> {
-    return this.doctorRepo.findOne({
-      where: { user: { id: userId } },
-      relations: ['user', 'specializations'],
-    });
-  }
+  return this.doctorRepo.findOne({
+    where: { user: { id: userId } },
+    relations: ['user'],
+  });
+}
+
 
   // ✅ Admin approval flow
   async approveDoctor(doctorId: number) {

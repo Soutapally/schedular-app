@@ -1,3 +1,6 @@
+//Defines the verification_tokens table storing doctor verification tokens with type,
+//  expiry time, and creation date.
+
 import {
   Entity,
   PrimaryGeneratedColumn,

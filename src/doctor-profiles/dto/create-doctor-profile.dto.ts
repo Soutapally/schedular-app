@@ -1,12 +1,23 @@
-import { IsInt, IsArray, Min } from 'class-validator';
+import {
+  IsInt,
+  IsPositive,
+  IsArray,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class CreateDoctorProfileDto {
   @IsInt()
-  @Min(0)
+  @IsPositive()
   experience: number;
 
   @IsInt()
+  @IsPositive()
   fee: number;
+
+  @IsString()
+  @MinLength(5)
+  licenseNo: string;
 
   @IsArray()
   specializationIds: number[];

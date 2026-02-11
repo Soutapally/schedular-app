@@ -1,3 +1,6 @@
+//Provides JWT-protected endpoints for doctors to set their availability and fetch 
+// their own availability.
+
 import { Controller, Post, Get, Body, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AvailabilityService } from './availability.service';

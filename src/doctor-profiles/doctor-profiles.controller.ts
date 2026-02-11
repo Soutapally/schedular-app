@@ -1,9 +1,11 @@
+//Doctor Profile controller provides the endpoint to get the doctor profile
+
 import { Controller, Post, Body, UseGuards, Req, Get } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { DoctorProfilesService } from './doctor-profiles.service';
 import { CreateDoctorProfileDto } from './dto/create-doctor-profile.dto';
 
-@Controller('doctor-profiles') // ✅ THIS defines /doctor-profiles
+@Controller('doctor-profiles')
 @UseGuards(JwtAuthGuard)
 export class DoctorProfilesController {
   constructor(

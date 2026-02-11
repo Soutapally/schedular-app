@@ -34,7 +34,6 @@ import { SpecializationsModule } from './specializations/specializations.module'
     PatientsModule,
     DoctorsModule,
     AuthModule,
-    DoctorsModule,
     DoctorProfilesModule,
     VerificationModule,
   AvailabilityModule,

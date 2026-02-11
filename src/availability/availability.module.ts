@@ -1,3 +1,6 @@
+//Registers the availability entity, service, controller, and connects it with the Doctors 
+// module.
+
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DoctorAvailability } from './doctor-availability.entity';

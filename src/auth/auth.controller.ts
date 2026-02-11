@@ -10,7 +10,6 @@ export class AuthController {
 
   
    //Frontend calls this when user clicks Doctor / Patient
-   
   @Get('select-role')
   selectRole(
     @Query('role') role: 'PATIENT' | 'DOCTOR',
@@ -28,23 +27,20 @@ export class AuthController {
   }
 
    //Patient Google login
-  
   @Get('google/patient')
   @UseGuards(AuthGuard('google'))
   googlePatientLogin() {
-    // Passport handles redirect to Google
+    
   }
 
    //Doctor Google login
-  
   @Get('google/doctor')
   @UseGuards(AuthGuard('google'))
   googleDoctorLogin() {
-    // Passport handles redirect to Google
+    
   }
 
    //Google OAuth callback
-  
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(@Req() req) {

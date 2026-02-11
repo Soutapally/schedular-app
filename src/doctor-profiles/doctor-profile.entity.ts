@@ -1,3 +1,6 @@
+//Doctor profile entity stores the details of the doctor like experience, fee, license no, 
+// specilizations.
+
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -28,7 +31,6 @@ export class DoctorProfile {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   fee: number;
 
-  // ✅ WEEK-1 SPECIALIZATION SUPPORT
   @ManyToMany(() => Specialization)
   @JoinTable({
     name: 'doctor_profile_specializations',

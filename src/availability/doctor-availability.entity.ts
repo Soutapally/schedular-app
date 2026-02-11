@@ -1,3 +1,6 @@
+//Defines the doctor_availability table storing a doctor’s available day and time slots
+//  linked to the Doctor entity.
+
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { Doctor } from '../doctors/doctor.entity';
 
