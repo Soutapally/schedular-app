@@ -9,7 +9,6 @@ import { AuthModule } from './auth/auth.module';
 import { DoctorProfilesModule } from './doctor-profiles/doctor-profiles.module';
 import { VerificationModule } from './verification/verification.module';
 import { AvailabilityModule } from './availability/availability.module';
-import { SpecializationsModule } from './specializations/specializations.module';
 
 @Module({
   imports: [
@@ -37,7 +36,6 @@ import { SpecializationsModule } from './specializations/specializations.module'
     DoctorProfilesModule,
     VerificationModule,
   AvailabilityModule,
-  SpecializationsModule,
   ],
 })
 export class AppModule {}

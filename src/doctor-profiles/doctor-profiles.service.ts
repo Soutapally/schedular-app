@@ -13,17 +13,12 @@ import { DoctorProfile } from './doctor-profile.entity';
 import { DoctorStatus } from '../doctors/doctor.entity';
 import { DoctorsService } from '../doctors/doctors.service';
 import { CreateDoctorProfileDto } from './dto/create-doctor-profile.dto';
-import { Specialization } from '../specializations/specialization.entity';
 
 @Injectable()
 export class DoctorProfilesService {
   constructor(
     @InjectRepository(DoctorProfile)
     private readonly profileRepo: Repository<DoctorProfile>,
-
-    @InjectRepository(Specialization)
-    private readonly specializationRepo: Repository<Specialization>,
-
     private readonly doctorsService: DoctorsService,
   ) {}
 
@@ -40,41 +35,24 @@ export class DoctorProfilesService {
       );
     }
 
-    if (!dto.specializationIds || dto.specializationIds.length === 0) {
+    if (!dto.specializations || dto.specializations.length === 0) {
       throw new BadRequestException('At least one specialization is required');
-    }
-
-    // ✅ Correct way to fetch array of IDs
-    const specializations = await this.specializationRepo.find({
-      where: {
-        id: In(dto.specializationIds),
-      },
-    });
-
-    if (specializations.length !== dto.specializationIds.length) {
-      throw new NotFoundException(
-        'One or more specializations not found',
-      );
     }
 
     let profile = await this.profileRepo.findOne({
       where: { doctor: { id: doctor.id } },
-      relations: ['doctor', 'specializations'],
+      relations: ['doctor'],
     });
 
     if (!profile) {
       profile = this.profileRepo.create({
         doctor,
         experience: dto.experience,
-        fee: dto.fee,
-         licenseNo: dto.licenseNo,
-        specializations,
+        specializations: dto.specializations,
       });
     } else {
       profile.experience = dto.experience;
-      profile.fee = dto.fee;
-      profile.licenseNo = dto.licenseNo;
-      profile.specializations = specializations;
+      profile.specializations = dto.specializations;
     }
 
     return this.profileRepo.save(profile);
@@ -89,7 +67,7 @@ export class DoctorProfilesService {
 
     const profile = await this.profileRepo.findOne({
       where: { doctor: { id: doctor.id } },
-      relations: ['doctor', 'specializations'],
+      relations: ['doctor'],
     });
 
     if (!profile) {

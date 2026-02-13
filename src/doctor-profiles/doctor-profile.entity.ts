@@ -11,7 +11,6 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Doctor } from '../doctors/doctor.entity';
-import { Specialization } from '../specializations/specialization.entity';
 
 @Entity('doctor_profiles')
 export class DoctorProfile {
@@ -25,19 +24,8 @@ export class DoctorProfile {
   @Column()
   experience: number;
 
-  @Column({ length: 50 })
-  licenseNo: string;
-
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  fee: number;
-
-  @ManyToMany(() => Specialization)
-  @JoinTable({
-    name: 'doctor_profile_specializations',
-    joinColumn: { name: 'profile_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'specialization_id', referencedColumnName: 'id' },
-  })
-  specializations: Specialization[];
+@Column('text', { array: true, nullable: true })
+specializations: string[];
 
   @Column({ default: false })
   isVerified: boolean;
