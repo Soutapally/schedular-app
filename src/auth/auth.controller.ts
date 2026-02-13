@@ -1,19 +1,47 @@
-//auth.controller.ts  - is the entry point for authentication related HTTP requests.
-import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
-import express from 'express';
+import { SignupDto } from './dto/signup.dto';
+import { SigninDto } from './dto/signin.dto';
+import { VerifyDto } from './dto/verify.dto';
+import type { Request, Response } from 'express';
+
+
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  
-   //Frontend calls this when user clicks Doctor / Patient
+@Post('signup')
+signup(@Body() dto: SignupDto){
+  return this.authService.signup(dto);
+}
+
+@Post('signin')
+signin(@Body() dto: SigninDto) {
+  return this.authService.signin(dto);
+}
+
+@Post('verify')
+verify(@Body() dto: VerifyDto) {
+  return this.authService.verify(dto);
+}
+
+
+  // ✅ SELECT ROLE (Redirects to correct Google route)
   @Get('select-role')
   selectRole(
     @Query('role') role: 'PATIENT' | 'DOCTOR',
-    @Res() res: express.Response,
+    @Res() res: Response,
   ) {
     if (role === 'PATIENT') {
       return res.redirect('/auth/google/patient');
@@ -26,24 +54,25 @@ export class AuthController {
     return res.status(400).json({ message: 'Invalid role' });
   }
 
-   //Patient Google login
+  // ✅ GOOGLE PATIENT LOGIN
   @Get('google/patient')
   @UseGuards(AuthGuard('google'))
   googlePatientLogin() {
-    
+    // passport handles redirect
   }
 
-   //Doctor Google login
+  // ✅ GOOGLE DOCTOR LOGIN
   @Get('google/doctor')
   @UseGuards(AuthGuard('google'))
   googleDoctorLogin() {
-    
+    // passport handles redirect
   }
 
-   //Google OAuth callback
+  // ✅ GOOGLE CALLBACK
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleCallback(@Req() req) {
-    return this.authService.googleLogin(req.user);
-  }
+  async googleCallback(@Req() req: any) {
+  return this.authService.googleLogin(req.user);
+}
+
 }

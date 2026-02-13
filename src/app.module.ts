@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 
 import { UsersModule } from './users/users.module';
-import { PatientsModule } from './patients/patients.module';
+import { PatientModule } from './patients/patients.module';
 import { DoctorsModule } from './doctors/doctors.module';
 import { AuthModule } from './auth/auth.module';
 import { DoctorProfilesModule } from './doctor-profiles/doctor-profiles.module';
@@ -31,7 +31,7 @@ import { SpecializationsModule } from './specializations/specializations.module'
     }),
 
     UsersModule,
-    PatientsModule,
+    PatientModule,
     DoctorsModule,
     AuthModule,
     DoctorProfilesModule,
