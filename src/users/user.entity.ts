@@ -12,6 +12,17 @@ export class User {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
+@Column({ type: 'varchar', nullable: true })
+otpHash: string | null;
+
+@Column({ type: 'timestamp', nullable: true })
+otpExpiry: Date | null;
+
+
+@Column({ default: 0 })
+otpAttempts: number;
+
+  
   @Column({ length: 100 })
   name: string;
 
@@ -22,6 +33,10 @@ export class User {
   email: string;
 
   @Column({ nullable: true })
+password: string;
+
+
+  @Column({ nullable: true })
   googleId: string;
 
 
@@ -30,6 +45,9 @@ export class User {
     enum: UserRole,
   })
   role: UserRole;
+
+  @Column({ default: false })
+  isVerified: boolean;
 
    @Column({ default: false })
   isProfileCompleted: boolean;

@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-google-oauth20';
 import { Request } from 'express';
+import { UserRole } from '../../users/user.entity';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -23,7 +24,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     refreshToken: string,
     profile: any,
   ) {
-    const role = req.path.includes('patient') ? 'PATIENT' : 'DOCTOR';
+    const role =
+      req.path.includes('patient')
+        ? UserRole.PATIENT
+        : UserRole.DOCTOR;
 
     return {
       googleId: profile.id,

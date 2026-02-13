@@ -11,6 +11,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { User } from '../users/user.entity';
 import { Patient } from '../patients/patient.entity';
 import { Doctor } from '../doctors/doctor.entity';
+import { MailService } from 'src/mail/mail.service';
 
 @Module({
   imports: [
@@ -22,6 +23,6 @@ import { Doctor } from '../doctors/doctor.entity';
     TypeOrmModule.forFeature([User, Patient, Doctor]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy, JwtStrategy],
+  providers: [AuthService, GoogleStrategy, JwtStrategy, MailService]
 })
 export class AuthModule {}
