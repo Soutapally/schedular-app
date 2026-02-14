@@ -11,14 +11,7 @@ export class CreateDoctorProfileDto {
   @IsPositive()
   experience: number;
 
-  @IsInt()
-  @IsPositive()
-  fee: number;
-
-  @IsString()
-  @MinLength(5)
-  licenseNo: string;
-
   @IsArray()
-  specializationIds: number[];
+  specializations: string[];
+
 }
