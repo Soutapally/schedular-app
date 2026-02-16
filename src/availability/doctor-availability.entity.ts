@@ -1,6 +1,3 @@
-//Defines the doctor_availability table storing a doctor’s available day and time slots
-//  linked to the Doctor entity.
-
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { Doctor } from '../doctors/doctor.entity';
 
@@ -16,8 +13,15 @@ export class DoctorAvailability {
   day: string; // MONDAY
 
   @Column()
-  startTime: string; // 09:00
+  startTime: string;
 
   @Column()
-  endTime: string; // 13:00
+  endTime: string;
+
+ @Column({ nullable: true })
+slotDuration: number;
+
+
+  @Column({ nullable: true })
+  maxPatientsPerSlot: number;
 }
