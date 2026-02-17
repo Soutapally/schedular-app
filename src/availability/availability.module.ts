@@ -8,10 +8,11 @@ import { AvailabilityService } from './availability.service';
 import { AvailabilityController } from './availability.controller';
 import { DoctorsModule } from '../doctors/doctors.module';
 import { AvailabilitySlot } from './availability-slot.entity';
+import { DoctorCustomAvailability } from './doctor-custom-availability.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([DoctorAvailability, AvailabilitySlot]),
+    TypeOrmModule.forFeature([DoctorAvailability, AvailabilitySlot, DoctorCustomAvailability,]),
     DoctorsModule,
   ],
   providers: [AvailabilityService],

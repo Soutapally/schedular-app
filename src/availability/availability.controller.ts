@@ -29,10 +29,31 @@ export class AvailabilityController {
   }
 
   // GET MY AVAILABILITY
-  @Get('availability/me')
-  getMyAvailability(@Req() req) {
-    return this.service.getMyAvailability(req.user.id);
-  }
+ @Get('availability/me')
+async getMyAvailability(@Req() req) {
+  const data = await this.service.getMyFullAvailability(req.user.id);
+
+  return {
+    recurring: data.recurring.map(a => ({
+      id: a.id,
+      day: a.day,
+      startTime: a.startTime,
+      endTime: a.endTime,
+      slotDuration: a.slotDuration,
+      maxPatientsPerSlot: a.maxPatientsPerSlot,
+      session: this.service.getSessionLabel(a.startTime),
+      displayTime: `${this.service.formatTo12Hour(a.startTime)} - ${this.service.formatTo12Hour(a.endTime)}`
+    })),
+
+    custom: data.custom.map(s => ({
+      date: s.date,
+      startTime: s.startTime,
+      endTime: s.endTime,
+      session: this.service.getSessionLabel(s.startTime),
+      displayTime: `${this.service.formatTo12Hour(s.startTime)} - ${this.service.formatTo12Hour(s.endTime)}`
+    }))
+  };
+}
 
 
   // GET AVAILABILITY BY DOCTOR
@@ -40,6 +61,12 @@ export class AvailabilityController {
   getDoctorAvailability(@Query('doctorId') doctorId: number) {
     return this.service.getDoctorAvailability(doctorId);
   }
+
+
+  @Post('availability/custom')
+setCustomAvailability(@Req() req, @Body() dto) {
+  return this.service.setCustomAvailability(req.user.id, dto);
+}
 
   // UPDATE AVAILABILITY
   @Put('availability/:id')

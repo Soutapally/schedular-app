@@ -1,20 +1,20 @@
 import { IsArray, IsInt, IsString, Min } from 'class-validator';
-
 export class SetAvailabilityDto {
   @IsArray()
-  days: string[]; // ["MONDAY", "TUESDAY"]
+  days: string[];
 
   @IsString()
-  startTime: string; // "09:00"
+  sessionLabel: string; // Morning / Evening
 
   @IsString()
-  endTime: string; // "13:00"
+  startTime: string;
+
+  @IsString()
+  endTime: string;
 
   @IsInt()
-  @Min(5)
-  slotDuration: number; // minutes
+  slotDuration: number;
 
   @IsInt()
-  @Min(1)
   maxPatientsPerSlot: number;
 }
