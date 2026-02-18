@@ -1,16 +1,35 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { DoctorAvailability } from './doctor-availability.entity';
+
+export enum SlotType {
+  RECURRING = 'RECURRING',
+  CUSTOM = 'CUSTOM',
+}
 
 @Entity('availability_slots')
 export class AvailabilitySlot {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => DoctorAvailability, { onDelete: 'CASCADE' })
-  availability: DoctorAvailability;
+  @Column()
+  doctorId: number;
+
+  @ManyToOne(() => DoctorAvailability, {
+    onDelete: 'CASCADE',
+    nullable: true, // only for recurring relation
+  })
+  @JoinColumn({ name: 'availabilityId' })
+  availability: DoctorAvailability | null;
+
+  @Column({
+    type: 'enum',
+    enum: SlotType,
+    default: SlotType.RECURRING,
+  })
+  slotType: SlotType;
 
   @Column()
-  date: string; // 2026-02-17
+  date: string;
 
   @Column()
   startTime: string;

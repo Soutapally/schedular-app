@@ -7,9 +7,9 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThanOrEqual } from 'typeorm';
+import { Repository, MoreThanOrEqual, IsNull } from 'typeorm';
 import { DoctorAvailability } from './doctor-availability.entity';
-import { AvailabilitySlot } from './availability-slot.entity';
+import { AvailabilitySlot, SlotType } from './availability-slot.entity';
 import { DoctorsService } from '../doctors/doctors.service';
 import { SetAvailabilityDto } from './dto/set-availability.dto';
 
@@ -30,44 +30,67 @@ export class AvailabilityService {
     private readonly doctorsService: DoctorsService,
   ) {}
 
-  // CREATE AVAILABILITY
-  async setAvailability(userId: number, dto: SetAvailabilityDto) {
-    const doctor = await this.doctorsService.findByUserId(userId);
-    if (!doctor) throw new NotFoundException('Doctor not found');
 
-    const results: DoctorAvailability[] = [];
+// CREATE AVAILABILITY
+async setAvailability(userId: number, dto: SetAvailabilityDto) {
+  const doctor = await this.doctorsService.findByUserId(userId);
+  if (!doctor) throw new NotFoundException('Doctor not found');
 
-    for (const day of dto.days) {
-      await this.checkOverlap(doctor.id, day, dto.startTime, dto.endTime);
+  // validate session label
+  this.validateSessionLabel(dto.sessionLabel, dto.startTime);
 
-      const availability = this.repo.create({
-        doctor,
-        day,
-        startTime: dto.startTime,
-        endTime: dto.endTime,
-        slotDuration: dto.slotDuration,
-        maxPatientsPerSlot: dto.maxPatientsPerSlot,
-      });
+  const results: DoctorAvailability[] = [];
 
-      const savedAvailability = await this.repo.save(availability);
+  for (const day of dto.days) {
+    await this.checkOverlap(doctor.id, day, dto.startTime, dto.endTime);
 
-      const slots = this.generateSlots(
-        dto.startTime,
-        dto.endTime,
-        dto.slotDuration,
-      );
+    const availability = this.repo.create({
+      doctor,
+      day,
+      startTime: dto.startTime,
+      endTime: dto.endTime,
+      slotDuration: dto.slotDuration,
+      maxPatientsPerSlot: dto.maxPatientsPerSlot,
+    });
 
-      await this.createSlotsForNextDays(
-        savedAvailability,
-        slots,
-        dto.maxPatientsPerSlot,
-      );
+    const savedAvailability = await this.repo.save(availability);
 
-      results.push(savedAvailability);
-    }
+    const slots = this.generateSlots(
+      dto.startTime,
+      dto.endTime,
+      dto.slotDuration,
+    );
 
-    return results;
+    await this.createSlotsForNextDays(
+      savedAvailability,
+      slots,
+      dto.maxPatientsPerSlot,
+    );
+
+    results.push(savedAvailability);
   }
+
+  return results;
+}
+
+async getMyFullAvailability(userId: number) {
+  const doctor = await this.doctorsService.findByUserId(userId);
+  if (!doctor) throw new NotFoundException('Doctor not found');
+
+  // 🔁 recurring
+  const recurring = await this.repo.find({
+    where: { doctor: { id: doctor.id } },
+    relations: ['doctor'],
+  });
+
+  // custom overrides
+  const custom = await this.slotRepo.find({
+    where: { doctorId: doctor.id, slotType: SlotType.CUSTOM },
+    order: { date: 'ASC', startTime: 'ASC' },
+  });
+
+  return { recurring, custom };
+}
 
   // GET DOCTOR AVAILABILITY
   async getDoctorAvailability(doctorId: number) {
@@ -98,7 +121,6 @@ export class AvailabilityService {
 
     const today = new Date().toISOString().split('T')[0];
 
-    // delete future slots
     await this.slotRepo.delete({
       availability: { id },
       date: MoreThanOrEqual(today),
@@ -131,47 +153,97 @@ export class AvailabilityService {
     return { message: 'Availability deleted successfully' };
   }
 
-  // GET SLOTS
-  async getSlots(doctorId: number, date: string) {
-    const slots = await this.slotRepo
-      .createQueryBuilder('slot')
-      .leftJoinAndSelect('slot.availability', 'availability')
-      .leftJoinAndSelect('availability.doctor', 'doctor')
-      .where('doctor.id = :doctorId', { doctorId })
-      .andWhere('slot.date = :date', { date })
-      .getMany();
+ getSessionLabel(time: string): string {
+  const hour = parseInt(time.split(':')[0]);
 
-    return slots.map((s) => ({
+  if (hour >= 5 && hour < 12) return 'Morning';
+  if (hour >= 12 && hour < 17) return 'Afternoon';
+  if (hour >= 17 && hour < 22) return 'Evening';
+  return 'Night';
+}
+
+ validateSessionLabel(label: string, time: string) {
+  const derived = this.getSessionLabel(time);
+
+  if (label !== derived) {
+    throw new BadRequestException(
+      `Session label "${label}" does not match time "${time}". Expected: ${derived}`,
+    );
+  }
+}
+
+ formatTo12Hour(time: string): string {
+  let [hours, minutes] = time.split(':').map(Number);
+  const modifier = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  return `${hours}:${minutes.toString().padStart(2, '0')} ${modifier}`;
+}
+
+
+  // GET SLOTS
+async getSlots(doctorId: number, date: string) {
+  // custom override
+  const customSlots = await this.slotRepo.find({
+    where: { doctorId, date, slotType: SlotType.CUSTOM },
+    order: { startTime: 'ASC' },
+  });
+
+  if (customSlots.length > 0) {
+    return customSlots.map((s) => ({
       slotId: s.id,
-      time: `${s.startTime}-${s.endTime}`,
+      session: this.getSessionLabel(s.startTime),
+      time: `${this.formatTo12Hour(s.startTime)} - ${this.formatTo12Hour(s.endTime)}`,
       available: s.capacity - s.bookedCount,
+      isCustom: true,
     }));
   }
 
+  // fallback recurring
+  const recurringSlots = await this.slotRepo.find({
+    where: { doctorId, date, slotType: SlotType.RECURRING },
+    order: { startTime: 'ASC' },
+  });
+
+  return recurringSlots.map((s) => ({
+    slotId: s.id,
+    session: this.getSessionLabel(s.startTime),
+    time: `${this.formatTo12Hour(s.startTime)} - ${this.formatTo12Hour(s.endTime)}`,
+    available: s.capacity - s.bookedCount,
+    isCustom: false,
+  }));
+}
+
+
 
   // SLOT DETAILS
-  async getSlotDetails(slotId: number) {
-    const slot = await this.slotRepo.findOne({
-      where: { id: slotId },
-      relations: ['availability', 'availability.doctor'],
-    });
+async getSlotDetails(slotId: number) {
+  const slot = await this.slotRepo.findOne({
+    where: { id: slotId },
+    relations: ['availability', 'availability.doctor'],
+  });
 
-    if (!slot) throw new NotFoundException('Slot not found');
+  if (!slot) throw new NotFoundException('Slot not found');
 
-    return {
-      slotId: slot.id,
-      doctorId: slot.availability.doctor.id,
-      date: slot.date,
-      startTime: slot.startTime,
-      endTime: slot.endTime,
-      capacity: slot.capacity,
-      bookedCount: slot.bookedCount,
-      availableSpots: slot.capacity - slot.bookedCount,
-    };
-  }
+  // determine doctorId safely
+  const doctorId = slot.availability
+    ? slot.availability.doctor.id
+    : slot.doctorId;
+
+  return {
+    slotId: slot.id,
+    doctorId,
+    date: slot.date,
+    startTime: slot.startTime,
+    endTime: slot.endTime,
+    capacity: slot.capacity,
+    bookedCount: slot.bookedCount,
+    availableSpots: slot.capacity - slot.bookedCount,
+  };
+}
+
 
 //DELETE SLOTS OF THE LOGGED- IN USER 
-  async deleteSlot(userId: number, slotId: number) {
+async deleteSlot(userId: number, slotId: number) {
   const doctor = await this.doctorsService.findByUserId(userId);
   if (!doctor) throw new NotFoundException('Doctor not found');
 
@@ -182,7 +254,12 @@ export class AvailabilityService {
 
   if (!slot) throw new NotFoundException('Slot not found');
 
-  if (slot.availability.doctor.id !== doctor.id) {
+  // resolve doctorId safely
+  const slotDoctorId = slot.availability
+    ? slot.availability.doctor.id
+    : slot.doctorId;
+
+  if (slotDoctorId !== doctor.id) {
     throw new BadRequestException('Not your slot');
   }
 
@@ -194,6 +271,44 @@ export class AvailabilityService {
 
   return { message: 'Slot deleted successfully' };
 }
+
+
+// SET CUSTOM AVAILABILITY (DATE OVERRIDE)
+async setCustomAvailability(userId: number, dto: any) {
+  const doctor = await this.doctorsService.findByUserId(userId);
+  if (!doctor) throw new NotFoundException('Doctor not found');
+
+  // ✅ validate session label
+  this.validateSessionLabel(dto.sessionLabel, dto.startTime);
+
+  // override recurring
+  await this.slotRepo.delete({
+    doctorId: doctor.id,
+    date: dto.date,
+  });
+
+  const slots = this.generateSlots(
+    dto.startTime,
+    dto.endTime,
+    dto.slotDuration,
+  );
+
+  for (const slot of slots) {
+    await this.slotRepo.save({
+      doctorId: doctor.id,
+      availability: null,
+      slotType: SlotType.CUSTOM,
+      date: dto.date,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      capacity: dto.maxPatientsPerSlot,
+      bookedCount: 0,
+    });
+  }
+
+  return { message: 'Custom availability saved' };
+}
+
 
   // OVERLAP CHECK
 
@@ -273,13 +388,16 @@ export class AvailabilityService {
 
       for (const slot of slots) {
         await this.slotRepo.save({
-          availability,
-          date: date.toISOString().split('T')[0],
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-          capacity,
-          bookedCount: 0,
-        });
+  doctorId: availability.doctor.id,
+  availability,
+  slotType: SlotType.RECURRING,
+  date: date.toISOString().split('T')[0],
+  startTime: slot.startTime,
+  endTime: slot.endTime,
+  capacity,
+  bookedCount: 0,
+});
+
       }
     }
   }
